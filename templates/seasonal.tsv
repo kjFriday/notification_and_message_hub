@@ -1,0 +1,14 @@
+# seasonal.tsv - seasonal message templates (fixture data).
+#
+# Tab-separated, one template per row, after the header row:
+#   season  starts  ends  template
+# starts and ends are mm-dd, and both days fall inside the window. In a
+# template, @ marks where the recipient's display name goes. Templates
+# contain no digits, and each one has exactly one @.
+season	starts	ends	template
+AUTUMN	10-01	11-02	@ hangs a paper lantern by the entrance and lights it early.
+AUTUMN	10-01	11-02	@ carves a face into the biggest squash at the market and leaves it smiling.
+AUTUMN	10-01	11-02	@ reads the old ghost stories aloud while the rain comes in off the river.
+AUTUMN	10-01	11-02	@ sets an extra chair at the table, for whoever is still on the way.
+AUTUMN	10-01	11-02	@ walks home the long way to see every lit window.
+AUTUMN	10-01	11-02	@ chalks the names of the ones who are gone on the step, and stays a while.
