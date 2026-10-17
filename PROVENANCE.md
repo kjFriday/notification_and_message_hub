@@ -50,6 +50,30 @@ This file was written new. It describes the per-key design and lists the
 changes to make from the excerpt. The closed-form forecast in it was checked
 numerically against the loop in source A, lines 113-135.
 
+## textsafe/
+
+A Go port of the CRUD hub project's sanitizer. These are ACME's own files,
+so they are not staged and are identified by hash only:
+
+| File | Source | SHA-256 |
+|------|--------|---------|
+| `textsafe/textsafe.go`      | `textsafe.py`      | `D89AC226CB46C7FA182E5ABD88D87ECA4D793B758DE3872D619C57F7F10F6F48` |
+| `textsafe/textsafe_test.go` | `test_textsafe.py` | `E611A2C4D4441DAF7E856D2ED5421B9B36047ADEA6FCE1ECC0F672DD37E27CC4` |
+
+- `LIMIT`, `refused` and `clean` became `Limit`, `Refused` and `Clean`/`CleanN`.
+  The rules and the 240-character cap are unchanged.
+- Python's `limit=None` (no cap) became `Strip`. `None` text has no Go
+  equivalent, so that test became an empty-string test.
+- New tests: the cap counts characters rather than bytes, and invalid UTF-8
+  becomes U+FFFD.
+
+## throttle/
+
+Written new, following `reference/throttle/README.md`. The decay arithmetic
+is reimplemented from the excerpt (source A, `settleLocked`) for one score per
+key. Its tests port the excerpt's forecast loop to check
+the closed form against it.
+
 ## templates/seasonal.tsv
 
 Taken from source D:
