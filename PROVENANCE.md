@@ -85,3 +85,10 @@ Taken from source D:
 - One phrase changed in the first row: a scrubbed noun was replaced with
   "by the entrance". The other five rows are verbatim.
 - The header comment was written new.
+
+## Copied in 0.2.0
+
+| File | From | Changes |
+|---|---|---|
+| `internal/app`, `internal/install`, `internal/desktop` | the CMS (`content_management_system/internal/...`, same portfolio) | App id and name only. `internal/install` is itself a Go port of the CRUD hub's `installer.py`. |
+| `cmd/notify/cli.go` | the CMS's `cli.go` | Exe name, port, the hub state and smoke report. |

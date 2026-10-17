@@ -1,26 +1,50 @@
-# Notification hub
+<img src="icon/app-256.png" width="64" height="64" alt="" style="image-rendering: pixelated">
 
-Turns pending ACME Inc. events into messages and throttles them per recipient. Go standard library only.
-ACME Inc. and everyone in it is fictional; no message leaves the machine (the outbox file is the
+# ACME Notify Hub (notification hub)
+
+Turns pending ACME Inc. events into messages and throttles them per recipient, in its own desktop
+window. ACME Inc. and everyone in it is fictional; no message leaves the machine (the outbox file is the
 delivery channel).
 
-- **Standalone:** reads `mock/events.json` and `mock/customers.json`.
-- **Connected:** `-hub http://127.0.0.1:8700` (or `ACME_HUB`) reads the CRUD hub's `events` and
-  `customers` tables and writes each processed event's status back with `PATCH /api/events/{id}`
-  (`-dry-run` skips that). Run it twice: the second run finds nothing pending.
+The window shows the pending-event queue, a **Dispatch** button (with a dry run), and the last pass's
+deliveries with their throttle band and retry time. Events and customers come from the shared ACME
+database, opened **by path**: `-db PATH`, the `ACME_DB` environment variable, the path saved on the
+**About** page, or `%LOCALAPPDATA%\ACME Inc\acme.db`. Each processed event's status is written back (only
+rows still `pending` change), so a second pass finds nothing to do. With no database, or `-mock`, it
+runs on the embedded snapshot and writes nothing back.
 
-## Run
+## Build and run
 
 ```bash
-go run ./cmd/dispatch
+go build -ldflags "-H windowsgui" -o acme-notify.exe ./cmd/notify
 ```
 
 ```bash
-go run ./cmd/dispatch -hub http://127.0.0.1:8700
+acme-notify.exe
 ```
 
-Deliveries go to `outbox/deliveries.jsonl`, one JSON object per message; a summary is printed.
+The window is Microsoft Edge WebView2 over pages the exe serves on `127.0.0.1` to that window only (a
+per-run token cookie; other requests are refused). `acme-notify.exe -serve` serves them without a window
+on `http://127.0.0.1:8730/`. The console dispatcher is still there:
 
+```bash
+go run ./cmd/dispatch -db PATH
+```
+
+Deliveries go to `deliveries.jsonl` in the outbox folder (the window's is
+`%LOCALAPPDATA%\ACME Inc\ACME.Notify\outbox`), one JSON object per message.
+
+## Install
+
+```bash
+acme-notify.exe -install
+```
+
+Installs for the current user: copies the exe to `%LOCALAPPDATA%\Programs\ACME Inc\ACME Notify Hub\`,
+adds **ACME Inc → ACME Notify Hub** to the Start menu (`-desktop-shortcut` for the desktop too) and lists
+it in **Apps & features**. `-uninstall` (or Apps & features) removes it; the database is never deleted
+(`-purge` also removes the program's own settings, outbox and WebView2 profile). `-root DIR` sandboxes
+it all in DIR. Other flags: `-version`, `-quiet`, `-smoke FILE`.
 ## Routing
 
 | Event kind | Recipient | Class (throttle priority) |
@@ -37,9 +61,13 @@ event whose messages were all sent becomes `sent`; one with a held message stays
 | Package | What |
 |---|---|
 | `dispatch` | Templates, routing (`Plan`) and the throttled run (`Run`); no I/O |
+| `internal/run` | One pass: load, dispatch, write the outbox and the statuses (used by both commands) |
+| `internal/store` | The shared database: events, customers, status write-back |
+| `internal/app`, `internal/install`, `internal/desktop` | Version and DB path, self-installer, WebView2 window (copied from the CMS) |
 | `throttle` | Per-key load-score throttle (see `reference/throttle`) |
 | `textsafe` | The CRUD hub's input sanitizer, ported |
-| `cmd/dispatch` | Reads the snapshot or the hub, writes the outbox and statuses |
+| `cmd/notify` | The desktop window (`acme-notify.exe`) |
+| `cmd/dispatch` | The same pass from the console |
 
 ## Tests
 
@@ -51,6 +79,12 @@ go vet ./...
 go test ./...
 ```
 
-## License
+## Dependencies
 
-AGPL-3.0, as the rest of the portfolio.
+- `github.com/jchv/go-webview2`: the native window, driven from pure Go (no cgo, so no C compiler).
+- `modernc.org/sqlite` (v1.46.1, the last release for Go 1.24): the shared SQLite file, also without cgo.
+
+## Icon and license
+
+Icon: Silk "bell" by Mark James, CC BY 2.5, enlarged by nearest-neighbour (`icon/README.md`).
+Code: AGPL-3.0, as the rest of the portfolio.
