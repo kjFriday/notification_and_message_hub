@@ -2,7 +2,7 @@
 
 This file records where each adapted file came from. Sources are identified
 by their SHA-256 and line ranges in the staged copies listed in
-`D:\Portfolio\_extracted\MANIFEST.tsv`. Look a hash up there to find the
+the owner's private staging manifest (`_extracted/MANIFEST.tsv`, kept locally and not published). Look a hash up there to find the
 original path and symbol names. They are not repeated here because they
 contain terms that are excluded from this project.
 
