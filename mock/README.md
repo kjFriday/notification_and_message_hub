@@ -11,5 +11,5 @@ the same records.
 | File | Rows | Taken from |
 |---|---|---|
 | `events.json` | 600 | latest 600 events |
-| `customers.json` | 73 | customers named in those events |
+| `customers.json` | 510 | customers named in those events |
 | `employees.json` | 120 | all employees |
