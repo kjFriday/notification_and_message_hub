@@ -4,8 +4,8 @@
 // marker, adds a Start-menu shortcut (optionally a desktop one) and an uninstall entry under
 // HKCU\...\CurrentVersion\Uninstall\<app id>, so it shows in Apps & features. Uninstall removes all
 // three and never touches the shared database. An install that a setup made by ACME Wizard Maker left
-// (its marker names the installer) is removed by its own uninstall.exe instead, which keeps the files
-// changed since: see Wizard.
+// (its marker names the installer), here or in the folder its uninstall entry names, is removed by its
+// own uninstall.exe instead, which keeps the files changed since: see Located and Wizard.
 //
 // Three layers, so tests never touch the real system: Plan (pure), Script (pure PowerShell, fed on
 // stdin) and Install/Uninstall with a replaceable Runner. With a sandbox root everything lands under
@@ -182,14 +182,24 @@ type Runner func(script string) error
 
 // PowerShell is the real Runner: the script goes on stdin, so no quoting reaches the command line.
 func PowerShell(script string) error {
+	_, err := PowerShellOutput(script)
+	return err
+}
+
+// Reader runs a PowerShell script: -> what it printed.
+type Reader func(script string) (string, error)
+
+// PowerShellOutput is the real Reader, run like PowerShell.
+func PowerShellOutput(script string) (string, error) {
 	cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", "-")
 	cmd.Stdin = strings.NewReader(script)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: 0x08000000} // CREATE_NO_WINDOW
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("PowerShell: %v: %s", err, strings.TrimSpace(string(out)))
+	var out, errs strings.Builder
+	cmd.Stdout, cmd.Stderr = &out, &errs
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("PowerShell: %v: %s", err, strings.TrimSpace(out.String()+errs.String()))
 	}
-	return nil
+	return strings.TrimSpace(out.String()), nil
 }
 
 type marker struct {
@@ -348,6 +358,45 @@ func Wizard(p Plan) string {
 		return ""
 	}
 	return filepath.Join(p.InstallDir, WizardUninstaller)
+}
+
+// InstallLocation is the folder the uninstall entry names, or "": from root\registry.json in a sandbox,
+// else read from the registry through PowerShell.
+func InstallLocation(p Plan, read Reader) (string, error) {
+	if p.RegistryFile != "" {
+		data := map[string]map[string]any{}
+		if b, err := os.ReadFile(p.RegistryFile); err == nil {
+			_ = json.Unmarshal(b, &data)
+		}
+		loc, _ := data[p.RegistryKey]["InstallLocation"].(string)
+		return loc, nil
+	}
+	return read(fmt.Sprintf("[Console]::OutputEncoding = [Text.Encoding]::UTF8\n"+
+		"(Get-ItemProperty -LiteralPath %s -Name InstallLocation -ErrorAction SilentlyContinue).InstallLocation\n",
+		Literal(p.RegistryKey)))
+}
+
+// Located is p aimed at the install its uninstall entry names when that lies outside p.InstallDir: a
+// setup made by ACME Wizard Maker installs where the user picks. Only such an install (see Wizard) is
+// handed on; any other folder still there is refused, so its entry and shortcuts are never cleared.
+func Located(p Plan, read Reader) (Plan, error) {
+	loc, err := InstallLocation(p, read)
+	if err != nil || !filepath.IsAbs(loc) {
+		return p, err
+	}
+	loc = filepath.Clean(loc)
+	if strings.EqualFold(loc, filepath.Clean(p.InstallDir)) {
+		return p, nil
+	}
+	if _, err := os.Stat(loc); errors.Is(err, os.ErrNotExist) {
+		return p, nil // a stale entry: clearing it orphans nothing
+	}
+	there := p
+	there.InstallDir = loc
+	if Wizard(there) == "" {
+		return p, fmt.Errorf("%s is installed in %s, which this copy cannot uninstall: use Apps & features", p.Name, loc)
+	}
+	return there, nil
 }
 
 // UninstallArgs are the flags -uninstall passes on to that uninstaller.

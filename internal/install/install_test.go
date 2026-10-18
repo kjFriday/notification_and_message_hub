@@ -281,6 +281,100 @@ func TestRunUninstallerRefusesFromTheFolderItRemoves(t *testing.T) {
 	}
 }
 
+// entry writes the sandbox uninstall entry with InstallLocation dir, as a setup would.
+func entry(t *testing.T, p Plan, dir string) {
+	t.Helper()
+	if err := editRegistryFile(p.RegistryFile, func(d map[string]any) { d[p.RegistryKey] = map[string]any{"InstallLocation": dir} }); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestLocatedFindsAWizardInstallElsewhere(t *testing.T) {
+	prog, root := setup(t)
+	p := MakePlan(prog, noEnv, root, false, 1, day)
+	none := func(string) (string, error) { t.Fatal("read the real registry in a sandbox"); return "", nil }
+	if got, err := Located(p, none); err != nil || got.InstallDir != p.InstallDir {
+		t.Fatalf("no entry: %q %v", got.InstallDir, err)
+	}
+	elsewhere := p
+	elsewhere.InstallDir = filepath.Join(root, "Apps", "Journal")
+	entry(t, p, elsewhere.InstallDir)
+	if got, err := Located(p, none); err != nil || got.InstallDir != p.InstallDir {
+		t.Fatalf("a stale entry: %q %v", got.InstallDir, err)
+	}
+	wizardInstall(t, elsewhere, "ACME.Test")
+	got, err := Located(p, none)
+	if err != nil || got.InstallDir != elsewhere.InstallDir || Wizard(got) != filepath.Join(elsewhere.InstallDir, "uninstall.exe") {
+		t.Fatalf("%q %v", got.InstallDir, err)
+	}
+	var ran []string
+	fake := func(exe string, args []string) (int, string, error) {
+		ran = append([]string{exe}, args...)
+		return 0, "", nil
+	}
+	if code, _, err := RunUninstaller(got, prog.Exe, UninstallArgs(true, false, root), fake); err != nil || code != 0 || ran[0] != Wizard(got) {
+		t.Fatalf("%d %v %q", code, err, ran)
+	}
+}
+
+func TestLocatedNeverClearsAnInstallElsewhere(t *testing.T) {
+	prog, root := setup(t)
+	p := MakePlan(prog, noEnv, root, false, 1, day)
+	elsewhere := p
+	elsewhere.InstallDir = filepath.Join(root, "Apps", "Journal")
+	entry(t, p, elsewhere.InstallDir)
+	none := func(string) (string, error) { return "", nil }
+	for _, id := range []string{"ACME.Other", ""} {
+		wizardInstall(t, elsewhere, id)
+		if id == "" {
+			os.Remove(filepath.Join(elsewhere.InstallDir, Marker))
+		}
+		if got, err := Located(p, none); err == nil || got.InstallDir != p.InstallDir {
+			t.Fatalf("%q: %q %v", id, got.InstallDir, err)
+		}
+	}
+	if b, _ := os.ReadFile(p.RegistryFile); !strings.Contains(string(b), "InstallLocation") {
+		t.Fatal("the entry was cleared")
+	}
+}
+
+func TestLocatedReadsTheRealRegistry(t *testing.T) {
+	prog, root := setup(t)
+	p := MakePlan(prog, noEnv, "", false, 1, day)
+	dir := filepath.Join(root, "Apps", "Journal")
+	var script string
+	read := func(s string) (string, error) { script = s; return dir, nil }
+	wizardInstall(t, Plan{InstallDir: dir, Name: p.Name, Version: p.Version}, "ACME.Test")
+	got, err := Located(p, read)
+	if err != nil || got.InstallDir != dir {
+		t.Fatalf("%q %v", got.InstallDir, err)
+	}
+	if !strings.Contains(script, `Get-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\ACME.Test' -Name InstallLocation`) {
+		t.Fatalf("script %s", script)
+	}
+	if _, err := Located(p, func(string) (string, error) { return "", os.ErrPermission }); err == nil {
+		t.Fatal("a failed read was ignored")
+	}
+	if got, _ := Located(p, func(string) (string, error) { return "Apps", nil }); got.InstallDir != p.InstallDir {
+		t.Fatal("followed a relative InstallLocation")
+	}
+}
+
+func TestPowerShellOutput(t *testing.T) {
+	if testing.Short() {
+		t.Skip("runs PowerShell")
+	}
+	if out, err := PowerShellOutput("[Console]::OutputEncoding = [Text.Encoding]::UTF8\n'M' + [char]0xF6 + 'tley'\n"); err != nil || out != "Mötley" {
+		t.Fatalf("%q %v", out, err)
+	}
+	prog, _ := setup(t)
+	p := MakePlan(prog, noEnv, "", false, 1, day)
+	p.RegistryKey = UninstallKey + `\ACME.NoSuchProgram.Test`
+	if loc, err := InstallLocation(p, PowerShellOutput); err != nil || loc != "" {
+		t.Fatalf("%q %v", loc, err)
+	}
+}
+
 func TestRunAndWaitReturnsTheExitCode(t *testing.T) {
 	code, said, err := RunAndWait("cmd.exe", []string{"/d", "/c", "echo kept & exit 4"})
 	if err != nil || code != 4 || said != "kept" {

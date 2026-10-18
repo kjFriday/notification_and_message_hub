@@ -75,6 +75,9 @@ func runInstaller(o options) (int, string, error) {
 	}
 	plan := install.MakePlan(prog, os.Getenv, o.root, o.desktopShortcut, size, time.Now())
 	if o.uninst {
+		if plan, err = install.Located(plan, install.PowerShellOutput); err != nil {
+			return 0, "", err
+		}
 		if install.Wizard(plan) != "" {
 			// a setup made by ACME Wizard Maker installed it: its uninstaller keeps the files changed since
 			code, said, err := install.RunUninstaller(plan, prog.Exe, install.UninstallArgs(o.quiet, o.purge, o.root), install.RunAndWait)
