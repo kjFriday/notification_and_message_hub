@@ -1,0 +1,16 @@
+{
+  "id": "ACME.Notify",
+  "name": "ACME Notify Hub",
+  "version": "0.2.0",
+  "publisher": "ACME Inc. (fictional)",
+  "group": "ACME Inc",
+  "icon": "icon/app.ico",
+  "files": [
+    {"from": "acme-notify.exe"}
+  ],
+  "run": {"program": "acme-notify.exe"},
+  "askFolder": true,
+  "shortcuts": {"ask": true, "startMenu": true, "desktop": false},
+  "purge": ["{localappdata}\\ACME Inc\\ACME.Notify"],
+  "output": "dist/{name}-{version}-setup.exe"
+}
