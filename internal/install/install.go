@@ -282,9 +282,10 @@ func SafeToRemove(p Plan) bool {
 }
 
 // Uninstall removes shortcuts, registry entry and install folder. When the running exe lives in that
-// folder, deleteLater is called to remove it after this process exits. purge, when set, is this
-// program's data folder (never the shared database). Returns whether a folder was removed.
-func Uninstall(p Plan, run Runner, running string, deleteLater func(dir string) error, purge string) (bool, error) {
+// folder it removes the rest and returns the folder as later: the caller passes it to DeleteAfterExit
+// as its very last action, after any message box. purge, when set, is this program's data folder
+// (never the shared database). Returns whether a folder was removed.
+func Uninstall(p Plan, run Runner, running string, purge string) (removed bool, later string, err error) {
 	m, _ := readMarker(p.InstallDir)
 	known := map[string]bool{}
 	for _, s := range p.Shortcuts {
@@ -296,21 +297,21 @@ func Uninstall(p Plan, run Runner, running string, deleteLater func(dir string) 
 		}
 	}
 	if err := run(Script(p, true)); err != nil {
-		return false, err
+		return false, "", err
 	}
 	if p.RegistryFile != "" {
 		if err := editRegistryFile(p.RegistryFile, func(d map[string]any) { delete(d, p.RegistryKey) }); err != nil {
-			return false, err
+			return false, "", err
 		}
 	}
 	if purge != "" {
 		_ = os.RemoveAll(purge)
 	}
 	if _, err := os.Stat(p.InstallDir); errors.Is(err, os.ErrNotExist) {
-		return false, nil
+		return false, "", nil
 	}
 	if !SafeToRemove(p) {
-		return false, fmt.Errorf("refusing to delete %s: no matching %s", p.InstallDir, Marker)
+		return false, "", fmt.Errorf("refusing to delete %s: no matching %s", p.InstallDir, Marker)
 	}
 	exe, _ := filepath.Abs(running)
 	if strings.EqualFold(filepath.Dir(exe), p.InstallDir) {
@@ -326,12 +327,13 @@ func Uninstall(p Plan, run Runner, running string, deleteLater func(dir string) 
 		for _, n := range names {
 			_ = os.RemoveAll(filepath.Join(p.InstallDir, n))
 		}
-		return true, deleteLater(p.InstallDir)
+		return true, p.InstallDir, nil
 	}
-	return true, os.RemoveAll(p.InstallDir)
+	return true, "", os.RemoveAll(p.InstallDir)
 }
 
-// DeleteAfterExit starts a hidden cmd that waits a moment, then removes dir (retrying a few times).
+// DeleteAfterExit starts a hidden cmd that waits a moment, then removes dir (retrying for about 4
+// seconds). Start it as this process's very last action: it gives up while the exe still runs.
 func DeleteAfterExit(dir string) error {
 	rd := fmt.Sprintf(`rd /s /q "%s"`, dir)
 	line := fmt.Sprintf(`cmd.exe /d /c "ping -n 3 127.0.0.1 >nul & %s & ping -n 2 127.0.0.1 >nul & %s & ping -n 2 127.0.0.1 >nul & %s"`, rd, rd, rd)

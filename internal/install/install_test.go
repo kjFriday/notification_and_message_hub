@@ -124,8 +124,7 @@ func TestRoundTrip(t *testing.T) {
 	if reg[p.RegistryKey]["DisplayVersion"] != "0.2.0" {
 		t.Fatalf("registry %v", reg)
 	}
-	later := ""
-	removed, err := Uninstall(p, rec.run, prog.Exe, func(d string) error { later = d; return nil }, "")
+	removed, later, err := Uninstall(p, rec.run, prog.Exe, "")
 	if err != nil || !removed || later != "" {
 		t.Fatalf("uninstall: %v %v %q", removed, err, later)
 	}
@@ -149,8 +148,8 @@ func TestRunningFromInstallDirDeletesLater(t *testing.T) {
 	p := MakePlan(prog, noEnv, root, false, 1, day)
 	rec := &recorder{}
 	Install(p, rec.run)
-	later := ""
-	removed, err := Uninstall(p, rec.run, p.ExeTarget, func(d string) error { later = d; return nil }, "")
+	// Uninstall only names the folder: the caller starts DeleteAfterExit once its message box is gone
+	removed, later, err := Uninstall(p, rec.run, p.ExeTarget, "")
 	if err != nil || !removed || later != p.InstallDir {
 		t.Fatalf("%v %v %q", removed, err, later)
 	}
@@ -165,7 +164,7 @@ func TestGuardRefusesForeignFolder(t *testing.T) {
 	p := MakePlan(prog, noEnv, root, false, 1, day)
 	os.MkdirAll(p.InstallDir, 0o755)
 	os.WriteFile(filepath.Join(p.InstallDir, "keep.txt"), []byte("not ours"), 0o644)
-	if _, err := Uninstall(p, (&recorder{}).run, prog.Exe, nil, ""); err == nil {
+	if _, _, err := Uninstall(p, (&recorder{}).run, prog.Exe, ""); err == nil {
 		t.Fatal("removed a folder without a marker")
 	}
 	os.WriteFile(filepath.Join(p.InstallDir, Marker), []byte(`{"app_id":"ACME.Other"}`), 0o644)
@@ -189,7 +188,7 @@ func TestRealShortcutInSandbox(t *testing.T) {
 	if _, err := os.Stat(p.Shortcuts[0].Path); err != nil {
 		t.Fatal("no shortcut:", err)
 	}
-	if _, err := Uninstall(p, PowerShell, prog.Exe, nil, ""); err != nil {
+	if _, _, err := Uninstall(p, PowerShell, prog.Exe, ""); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Dir(p.Shortcuts[0].Path)); !os.IsNotExist(err) {

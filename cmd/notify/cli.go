@@ -62,10 +62,11 @@ func program() (install.Program, error) {
 		Exe: exe, ExeName: exeName, Icon: icon.ICO}, nil
 }
 
-func runInstaller(o options) error {
+// runInstaller installs or uninstalls: -> a folder to remove once this exe has exited ("" for none).
+func runInstaller(o options) (string, error) {
 	prog, err := program()
 	if err != nil {
-		return err
+		return "", err
 	}
 	info, _ := os.Stat(prog.Exe)
 	var size int64
@@ -78,22 +79,22 @@ func runInstaller(o options) error {
 		if o.purge {
 			purge = app.DataDir(os.Getenv)
 		}
-		removed, err := install.Uninstall(plan, install.PowerShell, prog.Exe, install.DeleteAfterExit, purge)
+		removed, later, err := install.Uninstall(plan, install.PowerShell, prog.Exe, purge)
 		if err != nil {
-			return err
+			return "", err
 		}
 		msg := app.Name + " uninstalled. The database is kept."
 		if !removed {
 			msg = app.Name + " was not installed; shortcuts and the uninstall entry are cleared."
 		}
 		tell(o, msg)
-		return nil
+		return later, nil
 	}
 	if err := install.Install(plan, install.PowerShell); err != nil {
-		return err
+		return "", err
 	}
 	tell(o, fmt.Sprintf("%s %s installed in %s. Find it in the Start menu under ACME Inc.", app.Name, app.Version, plan.InstallDir))
-	return nil
+	return "", nil
 }
 
 func main() {
@@ -106,7 +107,12 @@ func main() {
 		return
 	}
 	if o.inst || o.uninst {
-		if err := runInstaller(o); err != nil {
+		later, err := runInstaller(o)
+		if err == nil && later != "" {
+			// the very last action, after the message box: the cmd removes the folder once this exe has exited
+			err = install.DeleteAfterExit(later)
+		}
+		if err != nil {
 			tell(o, app.Name+": "+err.Error())
 			os.Exit(1)
 		}
