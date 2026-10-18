@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: cmd/notify/main_test.go
+// About: Tests for package main.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package main
 
 import (
@@ -74,3 +83,5 @@ func TestOptions(t *testing.T) {
 		t.Fatalf("%+v %v", o, err)
 	}
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=2606fe2f7638c65d7172fc81c0f922310d100aa400cfb7a37c9b7efc4e3a82d7 ====

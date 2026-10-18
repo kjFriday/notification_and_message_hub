@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: dispatch/dispatch.go
+// About: Package dispatch turns pending hub events into messages: who gets one, what it says, and...
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Package dispatch turns pending hub events into messages: who gets one, what it says, and whether
 // the throttle lets it go now. It does no I/O; cmd/dispatch reads the events and writes the results.
 package dispatch
@@ -262,3 +271,5 @@ func Run(events []Event, d Directory, ts []Template, cfg throttle.Config) (Resul
 	}
 	return res, nil
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=9dc8598cd5ea5088a9189535b035dad50200d81d60e363cc19d03b94ca53e7d8 ====

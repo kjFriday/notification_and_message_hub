@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: throttle/throttle.go
+// About: Package throttle is the frequency-capping stage of the dispatcher.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Package throttle is the frequency-capping stage of the dispatcher.
 //
 // Each recipient key (a user ID, or a user ID plus a channel) has a load
@@ -312,3 +321,5 @@ func (t *Throttle) secondsBelowLocked(st *keyState, threshold int) int {
 	}
 	return s
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=b71134e70f1dd40299b0b05ed0827b85b93ceb2d4d27448ced7944260257cca1 ====

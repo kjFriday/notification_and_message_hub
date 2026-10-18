@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: internal/desktop/window_windows.go
+// About: Part of package desktop in notification_and_message_hub.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package desktop
 
 import (
@@ -87,3 +96,5 @@ func MessageBox(title, text string) {
 	m, _ := syscall.UTF16PtrFromString(text)
 	syscall.NewLazyDLL("user32.dll").NewProc("MessageBoxW").Call(0, uintptr(unsafe.Pointer(m)), uintptr(unsafe.Pointer(t)), 0x40)
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=7f11e2e606925644eff88f2be82b09f6ac2db33f8dfc586109f73995f1fad12d ====

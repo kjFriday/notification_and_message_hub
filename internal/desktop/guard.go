@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: internal/desktop/guard.go
+// About: Package desktop shows an ACME program's web pages in its own native window (Edge...
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Package desktop shows an ACME program's web pages in its own native window (Edge WebView2), served
 // by an in-process server on 127.0.0.1 that only that window can use.
 package desktop
@@ -49,3 +58,5 @@ func Guard(next http.Handler, token, host string) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=0da1ba28f43b1e7544b187f2c98e03dc526812f3409c410d7fb57ff176348a2c ====

@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: icon/icon_test.go
+// About: Tests for package icon.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package icon
 
 import (
@@ -58,3 +67,5 @@ func TestPixelExactAndCredited(t *testing.T) {
 		}
 	}
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=7549beabd6f90b1ccb1811f46d0e5026dbc8a18b029a3a34567003b751cbb99a ====

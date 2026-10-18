@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: internal/run/run.go
+// About: Package run is one dispatcher pass, shared by the window (cmd/notify) and the console...
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Package run is one dispatcher pass, shared by the window (cmd/notify) and the console (cmd/dispatch):
 // read events and customers from the shared database (or the embedded snapshot), route and throttle
 // them, write the outbox, and store each processed event's status.
@@ -177,3 +186,5 @@ func Keys(m map[string]int) []string {
 	sort.Strings(out)
 	return out
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=3d8b1c1b809f03f020220224d5bdb76c856a08de860d0d8f15b1f5488e3cd2aa ====

@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: internal/app/app.go
+// About: Package app is the Notify hub's identity (name, version, credit) and where it keeps its...
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Package app is the Notify hub's identity (name, version, credit) and where it keeps its files.
 //
 // The shared database is the only link between the ACME programs. Its path is chosen in this order:
@@ -93,3 +102,5 @@ func ResolveDB(flag string, env Env) string {
 	}
 	return DefaultDB(env)
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=d61e0326c4820247bd7de26db074d6ce94219a2293910649543a0cdfdb5e2893 ====

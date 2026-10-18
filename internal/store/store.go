@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: internal/store/store.go
+// About: Package store opens the shared ACME database by path: the dispatcher's only link to the...
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Package store opens the shared ACME database by path: the dispatcher's only link to the other
 // programs. It reads events and customers and writes back each processed event's status. The CRUD hub
 // owns the schema; this package never creates or changes tables, and it only ever moves an event out
@@ -142,3 +151,5 @@ func WriteStatuses(conn *sql.DB, status map[int64]string) (int, error) {
 	}
 	return n, tx.Commit()
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=a079dc5dbd8b34208d68f6c110b18843bc915958eb6e51be11f6df55d6ca338b ====

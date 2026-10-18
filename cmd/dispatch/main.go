@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: cmd/dispatch/main.go
+// About: Command dispatch sends the pending ACME Inc. notifications from the console (the window...
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Command dispatch sends the pending ACME Inc. notifications from the console (the window is cmd/notify).
 //
 // It reads the shared ACME database by path (-db, ACME_DB, the Notify hub's saved setting, or
@@ -46,3 +55,5 @@ func main() {
 		fmt.Printf("database: %d event statuses written\n", sum.Written)
 	}
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=eba6f05ed93a8648b28d31a0a8835b17ffd6f4a6da36a3d844df034896e2f7e3 ====

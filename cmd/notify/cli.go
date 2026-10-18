@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: cmd/notify/cli.go
+// About: Part of package main in notification_and_message_hub.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package main
 
 import (
@@ -174,3 +183,5 @@ func smoke(file string, h *hub, w desktop.Window, seen chan [2]any) {
 	os.WriteFile(file, b, 0o644)
 	w.Close()
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=c39ec641fa49bbc744608847db7dcb6c34d9e361e99263878c7c6a93fb523cbd ====

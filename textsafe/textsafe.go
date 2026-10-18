@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: textsafe/textsafe.go
+// About: Package textsafe guards text that arrives from outside: it drops invisible control...
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 // Package textsafe guards text that arrives from outside: it drops invisible
 // control characters and caps the length.
 //
@@ -56,3 +65,5 @@ func clean(text string, limit int) string {
 	}
 	return b.String()
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=da090314b2f17573563dc22715c72fce07f152ae5fb300d64b7fca0b57f3fff3 ====

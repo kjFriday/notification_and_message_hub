@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: internal/run/run_test.go
+// About: Tests for package run.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package run
 
 import (
@@ -131,3 +140,5 @@ func TestMissingDatabaseFallsBack(t *testing.T) {
 		t.Fatal("a missing database was created")
 	}
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=8b8ff1eb435007ac0bfb3cc534136cf362738fd5d28ced78f4531f4210a9447a ====

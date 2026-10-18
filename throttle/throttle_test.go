@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: throttle/throttle_test.go
+// About: Tests for package throttle.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package throttle
 
 import (
@@ -292,3 +301,5 @@ func TestClosedFormMatchesLoop(t *testing.T) {
 		}
 	}
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=9a337fc46d2df7bd23f56cca896620220861163a45c3e8366749bbb2bf83cac5 ====

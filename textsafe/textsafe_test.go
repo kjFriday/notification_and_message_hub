@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: textsafe/textsafe_test.go
+// About: Tests for package textsafe.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package textsafe
 
 import (
@@ -103,3 +112,5 @@ func TestInvalidUTF8BecomesReplacement(t *testing.T) {
 		t.Errorf("%q", got)
 	}
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=a67e5d043a330af958992acea057c358f545e276cdffc016f68f2b11ebe037c8 ====

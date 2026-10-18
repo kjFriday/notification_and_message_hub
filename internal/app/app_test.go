@@ -1,3 +1,12 @@
+// ==== ACME Inc. portfolio ===============================================
+// Project: notification_and_message_hub | File: internal/app/app_test.go
+// About: Tests for package app.
+// Copyright (c) 2026 kjFriday | SPDX-License-Identifier: AGPL-3.0-only
+// You may change this file under the AGPL-3.0. The stamp at the end marks
+// the version kjFriday wrote. Verify with the portfolio's stamp.py --check.
+// Reused code, if any, is mapped in PROVENANCE.md.
+// ========================================================================
+
 package app
 
 import (
@@ -74,3 +83,5 @@ func TestTitleCarriesTheVersion(t *testing.T) {
 		t.Fatalf("title %q credit %q", Title, Credit)
 	}
 }
+
+// ==== stamp v1 | author=kjFriday | hmac-sha256=d9a1c1848a15f9f986bf07a8ca35b06e330f5e71c34f6e34c311ff7d85968a43 ====
