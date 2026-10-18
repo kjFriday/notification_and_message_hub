@@ -62,11 +62,11 @@ func program() (install.Program, error) {
 		Exe: exe, ExeName: exeName, Icon: icon.ICO}, nil
 }
 
-// runInstaller installs or uninstalls: -> a folder to remove once this exe has exited ("" for none).
-func runInstaller(o options) (string, error) {
+// runInstaller installs or uninstalls: -> the exit code, and a folder to remove once this exe has exited.
+func runInstaller(o options) (int, string, error) {
 	prog, err := program()
 	if err != nil {
-		return "", err
+		return 0, "", err
 	}
 	info, _ := os.Stat(prog.Exe)
 	var size int64
@@ -75,26 +75,39 @@ func runInstaller(o options) (string, error) {
 	}
 	plan := install.MakePlan(prog, os.Getenv, o.root, o.desktopShortcut, size, time.Now())
 	if o.uninst {
+		if install.Wizard(plan) != "" {
+			// a setup made by ACME Wizard Maker installed it: its uninstaller keeps the files changed since
+			code, said, err := install.RunUninstaller(plan, prog.Exe, install.UninstallArgs(o.quiet, o.purge, o.root), install.RunAndWait)
+			switch {
+			case err != nil:
+				return 0, "", err
+			case code != 0 && code != install.Cancelled:
+				tell(o, app.Name+": "+said)
+			case said != "":
+				fmt.Println(said) // its window, or its quiet output, has said how it went
+			}
+			return code, "", nil
+		}
 		purge := ""
 		if o.purge {
 			purge = app.DataDir(os.Getenv)
 		}
 		removed, later, err := install.Uninstall(plan, install.PowerShell, prog.Exe, purge)
 		if err != nil {
-			return "", err
+			return 0, "", err
 		}
 		msg := app.Name + " uninstalled. The database is kept."
 		if !removed {
 			msg = app.Name + " was not installed; shortcuts and the uninstall entry are cleared."
 		}
 		tell(o, msg)
-		return later, nil
+		return 0, later, nil
 	}
 	if err := install.Install(plan, install.PowerShell); err != nil {
-		return "", err
+		return 0, "", err
 	}
 	tell(o, fmt.Sprintf("%s %s installed in %s. Find it in the Start menu under ACME Inc.", app.Name, app.Version, plan.InstallDir))
-	return "", nil
+	return 0, "", nil
 }
 
 func main() {
@@ -107,7 +120,7 @@ func main() {
 		return
 	}
 	if o.inst || o.uninst {
-		later, err := runInstaller(o)
+		code, later, err := runInstaller(o)
 		if err == nil && later != "" {
 			// the very last action, after the message box: the cmd removes the folder once this exe has exited
 			err = install.DeleteAfterExit(later)
@@ -116,7 +129,7 @@ func main() {
 			tell(o, app.Name+": "+err.Error())
 			os.Exit(1)
 		}
-		return
+		os.Exit(code)
 	}
 	h := &hub{dbPath: app.ResolveDB(o.db, os.Getenv), forced: o.mock, outDir: filepath.Join(app.DataDir(os.Getenv), "outbox")}
 	h.settings = func(p string) error { return app.SaveSettings(os.Getenv, map[string]any{"db": p}) }

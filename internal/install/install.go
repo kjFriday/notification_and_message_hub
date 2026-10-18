@@ -3,7 +3,9 @@
 // Install copies the exe and its icon to %LOCALAPPDATA%\Programs\ACME Inc\<name>\ with an install.json
 // marker, adds a Start-menu shortcut (optionally a desktop one) and an uninstall entry under
 // HKCU\...\CurrentVersion\Uninstall\<app id>, so it shows in Apps & features. Uninstall removes all
-// three and never touches the shared database.
+// three and never touches the shared database. An install that a setup made by ACME Wizard Maker left
+// (its marker names the installer) is removed by its own uninstall.exe instead, which keeps the files
+// changed since: see Wizard.
 //
 // Three layers, so tests never touch the real system: Plan (pure), Script (pure PowerShell, fed on
 // stdin) and Install/Uninstall with a replaceable Runner. With a sandbox root everything lands under
@@ -26,6 +28,10 @@ import (
 const (
 	UninstallKey = `HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall`
 	Marker       = "install.json"
+	// WizardUninstaller is what a setup made by ACME Wizard Maker leaves in the install folder.
+	WizardUninstaller = "uninstall.exe"
+	// Cancelled is that uninstaller's exit code when the user cancels it in its window.
+	Cancelled = 3
 )
 
 // Program is what gets installed.
@@ -192,6 +198,7 @@ type marker struct {
 	Version   string   `json:"version"`
 	Files     []string `json:"files"`
 	Shortcuts []string `json:"shortcuts"`
+	Installer string   `json:"installer,omitempty"` // written by ACME Wizard Maker setups, with a sha256 map
 }
 
 func readMarker(dir string) (marker, bool) {
@@ -330,6 +337,73 @@ func Uninstall(p Plan, run Runner, running string, purge string) (removed bool, 
 		return true, p.InstallDir, nil
 	}
 	return true, "", os.RemoveAll(p.InstallDir)
+}
+
+// Wizard is the uninstaller of an install that a setup made by ACME Wizard Maker left in p.InstallDir
+// (its marker names this program and an installer), or "" for this program's own install. Such an
+// install is removed by that uninstaller, which takes away only the files still as installed.
+func Wizard(p Plan) string {
+	m, ok := readMarker(p.InstallDir)
+	if !ok || m.AppID != p.AppID || m.Installer == "" {
+		return ""
+	}
+	return filepath.Join(p.InstallDir, WizardUninstaller)
+}
+
+// UninstallArgs are the flags -uninstall passes on to that uninstaller.
+func UninstallArgs(quiet, purge bool, root string) []string {
+	args := []string{}
+	if quiet {
+		args = append(args, "-quiet")
+	}
+	if purge {
+		args = append(args, "-purge")
+	}
+	if root != "" {
+		abs, _ := filepath.Abs(root)
+		args = append(args, "-root", abs)
+	}
+	return args
+}
+
+// Exec runs a program and waits for it: -> its exit code and what it printed.
+type Exec func(exe string, args []string) (int, string, error)
+
+// RunAndWait is the real Exec. The program starts in the temp folder, so it never holds the folder it removes.
+func RunAndWait(exe string, args []string) (int, string, error) {
+	cmd := exec.Command(exe, args...)
+	cmd.Dir = os.TempDir()
+	out, err := cmd.CombinedOutput()
+	var exit *exec.ExitError
+	if errors.As(err, &exit) {
+		return exit.ExitCode(), strings.TrimSpace(string(out)), nil
+	}
+	return 0, strings.TrimSpace(string(out)), err
+}
+
+// RunUninstaller removes a wizard-made install (see Wizard) through its uninstaller, run with args;
+// -> its exit code (0 done, Cancelled, ...) and how it went. It refuses while running lies in the
+// install folder: Windows cannot delete a running exe, so the uninstaller would stop half-way.
+func RunUninstaller(p Plan, running string, args []string, run Exec) (int, string, error) {
+	exe := Wizard(p)
+	if exe == "" {
+		return 0, "", fmt.Errorf("%s holds no wizard-made install of %s", p.InstallDir, p.Name)
+	}
+	self, _ := filepath.Abs(running)
+	if rel, err := filepath.Rel(p.InstallDir, self); err == nil && filepath.IsLocal(rel) {
+		return 0, "", fmt.Errorf("this copy runs from %s, which its uninstaller removes: uninstall %s from Apps & features, or run %s",
+			p.InstallDir, p.Name, exe)
+	}
+	code, said, err := run(exe, args)
+	if err != nil {
+		return 0, "", fmt.Errorf("run %s: %w", exe, err)
+	}
+	if said == "" && code == Cancelled {
+		said = "Uninstall cancelled."
+	} else if said == "" && code != 0 {
+		said = fmt.Sprintf("%s exited with %d", WizardUninstaller, code)
+	}
+	return code, said, nil
 }
 
 // DeleteAfterExit starts a hidden cmd that waits a moment, then removes dir (retrying for about 4
