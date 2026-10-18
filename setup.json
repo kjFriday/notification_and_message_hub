@@ -5,6 +5,7 @@
   "publisher": "ACME Inc. (fictional)",
   "group": "ACME Inc",
   "icon": "icon/app.ico",
+  "license": "LICENSE",
   "files": [
     {"from": "acme-notify.exe"}
   ],
