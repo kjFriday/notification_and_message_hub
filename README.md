@@ -46,6 +46,8 @@ it in **Apps & features**. `-uninstall` (or Apps & features) removes it; the dat
 (`-purge` also removes the program's own settings, outbox and WebView2 profile). `-root DIR` sandboxes
 it all in DIR. Other flags: `-version`, `-quiet`, `-smoke FILE`.
 
+`wizard-maker.exe build setup.json` (ACME Wizard Maker) makes the setup, `dist\ACME Notify Hub-0.2.0-setup.exe`.
+
 ## Routing
 
 | Event kind | Recipient | Class (throttle priority) |
