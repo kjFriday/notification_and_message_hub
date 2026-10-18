@@ -16,14 +16,14 @@ runs on the embedded snapshot and writes nothing back.
 ## Build and run
 
 ```bash
-go build -ldflags "-H windowsgui" -o acme-notify.exe ./cmd/notify
+go build -trimpath -ldflags "-H windowsgui" -o acme-notify.exe ./cmd/notify
 ```
 
 ```bash
 acme-notify.exe
 ```
 
-The window is Microsoft Edge WebView2 over pages the exe serves on `127.0.0.1` to that window only (a
+`-trimpath` keeps the build machine's paths out of the exe. The window is Microsoft Edge WebView2 over pages the exe serves on `127.0.0.1` to that window only (a
 per-run token cookie; other requests are refused). `acme-notify.exe -serve` serves them without a window
 on `http://127.0.0.1:8730/`. The console dispatcher is still there:
 
@@ -45,6 +45,7 @@ adds **ACME Inc → ACME Notify Hub** to the Start menu (`-desktop-shortcut` for
 it in **Apps & features**. `-uninstall` (or Apps & features) removes it; the database is never deleted
 (`-purge` also removes the program's own settings, outbox and WebView2 profile). `-root DIR` sandboxes
 it all in DIR. Other flags: `-version`, `-quiet`, `-smoke FILE`.
+
 ## Routing
 
 | Event kind | Recipient | Class (throttle priority) |
